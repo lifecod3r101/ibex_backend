@@ -22,7 +22,7 @@ public class IbexApplicationController {
     @GetMapping("/getAccount/{accountId}/{authorizationKey}")
     public ResponseEntity<?> getAccountDetails(@PathVariable("accountId") String accountId, @PathVariable("authorizationKey") String authorizationKey) {
         Request request = new Request.Builder()
-                .url(ibexApplicationCredentials.getBaseUrl().concat("account/").concat(accountId))
+                .url(ibexApplicationCredentials.getV2baseUrl().concat("account/").concat(accountId))
                 .get()
                 .addHeader("accept", "application/json")
                 .addHeader("Authorization", authorizationKey)
@@ -49,7 +49,7 @@ public class IbexApplicationController {
             String stuffString = objectMapper.writeValueAsString(stuff);
             RequestBody body = RequestBody.create(mediaType, stuffString);
             Request request = new Request.Builder()
-                    .url(ibexApplicationCredentials.getBaseUrl().concat("invoice/add"))
+                    .url(ibexApplicationCredentials.getV2baseUrl().concat("invoice/add"))
                     .post(body)
                     .addHeader("accept", "application/json")
                     .addHeader("content-type", "application/json")
@@ -66,7 +66,7 @@ public class IbexApplicationController {
     @PostMapping("/payInvoice/{authorizationKey}")
     public ResponseEntity<?> payInvoice(@RequestParam("accountId") String accountPayId, @RequestParam("bolt11") String bolt11, @PathVariable("authorizationKey") String authorizationKey) {
         Request request = new Request.Builder()
-                .url(ibexApplicationCredentials.getBaseUrl().concat("invoice/pay"))
+                .url(ibexApplicationCredentials.getV2baseUrl().concat("invoice/pay"))
                 .post(null)
                 .addHeader("accept", "application/json")
                 .addHeader("content-type", "application/json")
@@ -116,6 +116,7 @@ public class IbexApplicationController {
                     .addHeader("Authorization", authorizationKey)
                     .build();
             Response response = client.newCall(request).execute();
+            assert response.body() != null;
             return ResponseEntity.ok(response.body().string());
         } catch (IOException e) {
             throw new RuntimeException(e);
