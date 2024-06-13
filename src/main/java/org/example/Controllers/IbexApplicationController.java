@@ -21,8 +21,8 @@ public class IbexApplicationController {
 
     OkHttpClient client = new OkHttpClient();
 
-    @GetMapping("/getAccount/{accountId}")
-    public ResponseEntity<?> getAccountDetails(@PathVariable("accountId") String accountId) {
+    @GetMapping("/getAccount/{accountId}/{authorizationKey}")
+    public ResponseEntity<?> getAccountDetails(@PathVariable("accountId") String accountId, @PathVariable("authorizationKey") String authorizationKey) {
         Request request = new Request.Builder()
                 .url(ibexApplicationCredentials.getBaseUrl().concat("account/").concat(accountId))
                 .get()
@@ -40,8 +40,8 @@ public class IbexApplicationController {
 
     }
 
-    @PostMapping("/createInvoice")
-    public ResponseEntity<?> createInvoice(@RequestParam("accountId") String accountCreatorId, @RequestParam("amount") String invoiceAmount) {
+    @PostMapping("/createInvoice/{authorizationKey}")
+    public ResponseEntity<?> createInvoice(@RequestParam("accountId") String accountCreatorId, @RequestParam("amount") String invoiceAmount, @PathVariable("authorizationKey") String authorizationKey) {
         MediaType mediaType = MediaType.parse("application/json");
         Map<String, Object> stuff = new HashMap<>();
         stuff.put("expiration", 900);
@@ -65,8 +65,8 @@ public class IbexApplicationController {
     }
 
 
-    @PostMapping("/payInvoice")
-    public ResponseEntity<?> payInvoice(@RequestParam("accountId") String accountPayId, @RequestParam("bolt11") String bolt11) {
+    @PostMapping("/payInvoice/{authorizationKey}")
+    public ResponseEntity<?> payInvoice(@RequestParam("accountId") String accountPayId, @RequestParam("bolt11") String bolt11, @PathVariable("authorizationKey") String authorizationKey) {
         Request request = new Request.Builder()
                 .url(ibexApplicationCredentials.getBaseUrl().concat("invoice/pay"))
                 .post(null)
@@ -83,8 +83,8 @@ public class IbexApplicationController {
         }
     }
 
-    @GetMapping("/getInvoice/{bolt11InvoiceId}")
-    public ResponseEntity<?> getInvoiceInformation(@PathVariable("bolt11InvoiceId") String bolt11InvoiceId) {
+    @GetMapping("/getInvoice/{bolt11InvoiceId}/{authorizationKey}")
+    public ResponseEntity<?> getInvoiceInformation(@PathVariable("bolt11InvoiceId") String bolt11InvoiceId, @PathVariable("authorizationKey") String authorizationKey) {
         Request request = new Request.Builder()
                 .url(ibexApplicationCredentials.getBaseUrl().concat("invoice/from-bolt11").concat("/").concat(bolt11InvoiceId))
                 .get()
@@ -93,6 +93,30 @@ public class IbexApplicationController {
                 .build();
 
         try {
+            Response response = client.newCall(request).execute();
+            return ResponseEntity.ok(response.body().string());
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @PostMapping("/createAccount/{accountName}/{authorizationKey}")
+    public ResponseEntity<?> createAccount(@PathVariable("accountName") String accountName, @PathVariable("authorizationKey") String authorizationKey) {
+        MediaType mediaType = MediaType.parse("application/json");
+        Map<String, Object> stuff = new HashMap<>();
+        stuff.put("expiration", 900);
+        stuff.put("name", accountName);
+        ObjectMapper objectMapper = new ObjectMapper();
+        try {
+            String stuffString = objectMapper.writeValueAsString(stuff);
+            RequestBody body = RequestBody.create(mediaType, stuffString);
+            Request request = new Request.Builder()
+                    .url(ibexApplicationCredentials.getBaseUrl().concat("account/create"))
+                    .post(body)
+                    .addHeader("accept", "application/json")
+                    .addHeader("content-type", "application/json")
+                    .addHeader("Authorization", authorizationKey)
+                    .build();
             Response response = client.newCall(request).execute();
             return ResponseEntity.ok(response.body().string());
         } catch (IOException e) {
