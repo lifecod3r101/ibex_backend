@@ -16,8 +16,6 @@ import java.util.Map;
 public class IbexApplicationController {
     private IbexApplicationCredentials ibexApplicationCredentials = new IbexApplicationCredentials();
 
-    @Value("${ibex.auth.key}")
-    String authorizationKey;
 
     OkHttpClient client = new OkHttpClient();
 
